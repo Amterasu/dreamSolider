@@ -1,0 +1,78 @@
+{
+  "id": "喵喵锤",
+  "type": "skill",
+  "item_type": "weapon",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "initial_summon_collection",
+          "type": "set",
+          "value": 1
+        }
+      ],
+      "mechanics": {
+        "description": "首次召唤梦灵时立即获得异想收藏",
+        "value": 1
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "damage_bonus_early_battle",
+          "type": "add",
+          "value": 0.1,
+          "condition": "within_60s"
+        }
+      ],
+      "mechanics": {
+        "description": "进入战斗60秒内伤害提升",
+        "value": "+10%"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "rare_collection_proc_multiplier",
+          "type": "set",
+          "value": 2
+        }
+      ],
+      "mechanics": {
+        "description": "喵喵锤触发时，高级收藏概率翻倍"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "damage_bonus_early_battle",
+          "type": "set",
+          "value": 0.2,
+          "condition": "within_60s"
+        }
+      ],
+      "mechanics": {
+        "description": "进入战斗60秒内伤害提升",
+        "value": "+20%"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "initial_summon_collection",
+          "type": "set",
+          "value": 2
+        }
+      ],
+      "mechanics": {
+        "description": "首次召唤梦灵时获得异想收藏数量提升",
+        "value": 2
+      }
+    }
+  ]
+}

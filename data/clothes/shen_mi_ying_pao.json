@@ -1,0 +1,92 @@
+{
+  "id": "神秘影袍",
+  "type": "skill",
+  "item_type": "clothes",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "damage_bonus",
+          "type": "add",
+          "value": 0.4
+        },
+        {
+          "stat": "magic_explosion_trigger_damage",
+          "type": "set",
+          "value": 30,
+          "unit": "attack_multiplier"
+        }
+      ],
+      "mechanics": {
+        "description": "战斗开始后获得消耗型卡带：秘法附魔",
+        "effect_1": "该梦灵伤害+40%",
+        "effect_2": "每次充能后首次攻击触发队长释放魔法爆裂",
+        "explosion_effect": "对范围内敌人造成3000%队长攻击力伤害",
+        "special_rule": "魔法爆裂首次命中也可触发该效果"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "magic_explosion_damage_bonus",
+          "type": "add",
+          "value": 0.6
+        }
+      ],
+      "mechanics": {
+        "description": "魔法爆裂伤害提升",
+        "effect": "+60%魔法爆裂伤害"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "enchantment_damage_bonus",
+          "type": "set",
+          "value": 0.6
+        },
+        {
+          "stat": "final_damage_bonus",
+          "type": "add",
+          "value": 0.05
+        }
+      ],
+      "mechanics": {
+        "description": "秘法附魔强化",
+        "effect_1": "秘法附魔伤害加成提升至+60%",
+        "effect_2": "提供+5%最终增伤"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "magic_explosion_damage_bonus",
+          "type": "add",
+          "value": 0.6
+        }
+      ],
+      "mechanics": {
+        "description": "魔法爆裂再次强化",
+        "effect": "+60%魔法爆裂伤害"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "extra_equipment_slot",
+          "type": "add",
+          "value": 1
+        }
+      ],
+      "mechanics": {
+        "description": "系统扩展能力",
+        "effect": "秘法附魔额外提供1个挂件栏"
+      }
+    }
+  ]
+}

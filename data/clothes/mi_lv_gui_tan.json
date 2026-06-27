@@ -1,0 +1,88 @@
+{
+  "id": "谜律诡探",
+  "type": "skill",
+  "item_type": "clothes",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "exclude_interrupt_count",
+          "type": "set",
+          "value": 2
+        },
+        {
+          "stat": "key_clue_stack_per_use",
+          "type": "add",
+          "value": 1
+        },
+        {
+          "stat": "final_damage_bonus_per_key_clue_stack",
+          "type": "add",
+          "value": 0.03
+        }
+      ],
+      "mechanics": {
+        "description": "初始获得2次排除干扰",
+        "exclude_interrupt": "可移除1个指定祝福，该祝福后续不会再出现并重新随机该位置",
+        "on_use_effect": "每次使用排除干扰，全体梦灵获得1层关键线索",
+        "key_clue_effect": "每层关键线索提供+3%最终伤害"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "exclude_interrupt_count",
+          "type": "add",
+          "value": 1
+        }
+      ],
+      "mechanics": {
+        "description": "排除干扰次数增加"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "final_damage_bonus_per_key_clue_stack",
+          "type": "set",
+          "value": 0.06
+        }
+      ],
+      "mechanics": {
+        "description": "关键线索强化",
+        "effect": "每层关键线索提供最终伤害提升至6%"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "exclude_interrupt_count",
+          "type": "add",
+          "value": 1
+        }
+      ],
+      "mechanics": {
+        "description": "再次增加排除干扰次数"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "truth_lock_bonus_final_damage",
+          "type": "add",
+          "value": 0.1
+        }
+      ],
+      "mechanics": {
+        "description": "真相锁定机制",
+        "condition": "获得4层关键线索后触发",
+        "effect": "场上祝福数量最多的梦灵额外获得10%最终增伤"
+      }
+    }
+  ]
+}

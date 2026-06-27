@@ -1,0 +1,102 @@
+{
+  "id": "宇宙之心",
+  "type": "skill",
+  "item_type": "weapon",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "cast_interval",
+          "type": "set",
+          "value": 100,
+          "unit": "seconds"
+        },
+        {
+          "stat": "skill_damage_multiplier",
+          "type": "set",
+          "value": 30
+        },
+        {
+          "stat": "stun_duration",
+          "type": "set",
+          "value": 6,
+          "unit": "seconds"
+        },
+        {
+          "stat": "proc_chance_extra_effect",
+          "type": "set",
+          "value": 0.3
+        }
+      ],
+      "mechanics": {
+        "description": "每100秒释放一次宇宙波",
+        "effect": "对直线范围造成3000%队长攻击力伤害",
+        "control": "造成6秒停滞效果",
+        "extra_proc": "停滞时有30%概率额外触发一次效果（持续6秒）"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "stun_duration_bonus",
+          "type": "add",
+          "value": 0.3
+        }
+      ],
+      "mechanics": {
+        "description": "控制强化",
+        "effect": "宇宙波造成的停滞时间延长30%"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "control_applies_vulnerability",
+          "type": "set",
+          "value": true
+        },
+        {
+          "stat": "vulnerability_duration",
+          "type": "set",
+          "value": 6,
+          "unit": "seconds"
+        }
+      ],
+      "mechanics": {
+        "description": "控制联动机制",
+        "effect": "所有控制效果都会附加6秒易伤"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "vulnerability_bonus",
+          "type": "set",
+          "value": 0.4
+        }
+      ],
+      "mechanics": {
+        "description": "易伤强化",
+        "effect": "易伤效果提升至40%"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "double_cast_chance",
+          "type": "set",
+          "value": 0.3
+        }
+      ],
+      "mechanics": {
+        "description": "宇宙波强化",
+        "effect": "释放宇宙波时有30%概率额外再释放一次"
+      }
+    }
+  ]
+}

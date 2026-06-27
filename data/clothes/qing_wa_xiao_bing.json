@@ -1,0 +1,82 @@
+{
+  "id": "青蛙小兵",
+  "type": "skill",
+  "item_type": "clothes",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "team_damage_bonus_per_summon",
+          "type": "add",
+          "value": 0.05
+        }
+      ],
+      "mechanics": {
+        "description": "每上阵1个梦灵，全体梦灵伤害提升",
+        "value": "+5%全体伤害"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "team_damage_bonus_per_summon",
+          "type": "set",
+          "value": 0.065
+        }
+      ],
+      "mechanics": {
+        "description": "每上阵1个梦灵，全体梦灵伤害提升",
+        "value": "提升至6.5%"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "threshold_summon_count",
+          "type": "set",
+          "value": 3
+        },
+        {
+          "stat": "damage_bonus",
+          "type": "add",
+          "value": 0.1
+        }
+      ],
+      "mechanics": {
+        "description": "当上阵3个梦灵时触发额外增伤",
+        "value": "+10%额外伤害"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "team_damage_bonus_per_summon",
+          "type": "set",
+          "value": 0.08
+        }
+      ],
+      "mechanics": {
+        "description": "每上阵1个梦灵，全体梦灵伤害提升",
+        "value": "提升至8%"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "highest_attack_unit_bonus_damage",
+          "type": "add",
+          "value": 0.15
+        }
+      ],
+      "mechanics": {
+        "description": "上阵5个梦灵时触发额外强化",
+        "value": "攻击力最高的梦灵额外获得15%伤害提升"
+      }
+    }
+  ]
+}

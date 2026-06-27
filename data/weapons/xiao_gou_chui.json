@@ -1,0 +1,104 @@
+{
+  "id": "小狗锤",
+  "type": "skill",
+  "item_type": "weapon",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "transform_chance",
+          "type": "set",
+          "value": 0.05,
+          "unit": "ratio"
+        },
+        {
+          "stat": "explosion_delay",
+          "type": "set",
+          "value": 4,
+          "unit": "seconds"
+        },
+        {
+          "stat": "explosion_damage_multiplier",
+          "type": "set",
+          "value": 30,
+          "unit": "ratio"
+        }
+      ],
+      "mechanics": {
+        "description": "队长攻击有概率将小怪转化为自爆小狗",
+        "transform_target": "enemy_small_unit",
+        "transform_result": "self_exploding_dog",
+        "death_rule": "4秒后自爆",
+        "damage_cap": {
+          "type": "attack_based_cap",
+          "value": 30000
+        },
+        "aoe_multiplier": 30
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "transform_chance",
+          "type": "override",
+          "value": 0.07,
+          "unit": "ratio"
+        }
+      ],
+      "mechanics": {
+        "description": "转化概率提升"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "stun_duration",
+          "type": "set",
+          "value": 3.5,
+          "unit": "seconds"
+        }
+      ],
+      "mechanics": {
+        "description": "小狗自爆时眩晕敌人"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "transform_chance",
+          "type": "override",
+          "value": 0.09,
+          "unit": "ratio"
+        }
+      ],
+      "mechanics": {
+        "description": "再次提升转化概率"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "secondary_transform_chance",
+          "type": "set",
+          "value": 0.1,
+          "unit": "ratio"
+        }
+      ],
+      "mechanics": {
+        "description": "小狗击杀单位后概率生成自爆小小狗",
+        "trigger": "on_kill_by_explosion",
+        "result": "mini_exploding_dog"
+      }
+    }
+  ],
+  "meta": {
+    "notes": "Lv1核心机制为概率召唤自爆单位，伤害受攻击力30000上限限制，爆炸为3000%范围伤害",
+    "scaling_type": "probability_control_and_summon_chain",
+    "damage_type": "explosion_aoe"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "大开眼戒",
+  "type": "skill",
+  "item_type": "weapon",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "final_damage_bonus",
+          "type": "additive",
+          "value": 0.1
+        }
+      ],
+      "condition": "持续增幅场上祝福数量最多的梦灵"
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "crit_damage_bonus",
+          "type": "additive",
+          "value": 1
+        }
+      ],
+      "condition": "被增幅梦灵触发暴击时，本次暴击伤害+100%"
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "amp_multiplier",
+          "type": "multiplicative",
+          "value": 1.4,
+          "applies_to": [
+            "final_damage_bonus",
+            "crit_damage_bonus",
+            "all_existing_amp_effects"
+          ]
+        }
+      ],
+      "condition": "被增幅梦灵祝福数量超过3个时，所有增幅效果额外提升40%"
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "final_damage_bonus",
+          "type": "set",
+          "value": 0.15
+        }
+      ],
+      "condition": "被增幅梦灵最终伤害提升至+15%"
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "crit_damage_bonus",
+          "type": "set",
+          "value": 2.4
+        }
+      ],
+      "condition": "被增幅梦灵触发暴击时，本次暴击伤害提升至+240%（享受3星加成）"
+    }
+  ],
+  "interpretation": {
+    "level3_rule": "该效果不提供独立加成，而是对当前已生效的所有增幅类乘区进行1.4倍放大",
+    "scaling_type": "multiplicative_on_existing_amplification",
+    "important_note": "Level 3会同时放大最终伤害增幅与暴击伤害增幅，而不是新增40%独立加成"
+  }
+}

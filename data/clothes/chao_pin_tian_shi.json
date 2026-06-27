@@ -1,0 +1,116 @@
+{
+  "id": "超频天使",
+  "type": "skill",
+  "item_type": "clothes",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "team_damage_bonus",
+          "type": "add",
+          "value": 0.3,
+          "duration": 30,
+          "cooldown_cycle": 120
+        },
+        {
+          "stat": "emergency_heal_lowest_hp",
+          "type": "add",
+          "value": 0.2,
+          "unit": "max_hp_ratio"
+        }
+      ],
+      "mechanics": {
+        "description": "每120秒触发一次超频状态",
+        "buff_effect": "全体梦灵获得30%伤害加成，持续30秒",
+        "heal_effect": "恢复当前生命值最低梦灵20%最大生命值"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "all_damage_bonus",
+          "type": "add",
+          "value": 0.4
+        }
+      ],
+      "mechanics": {
+        "description": "全体增伤效果提升",
+        "effect": "所有伤害加成效果提升至40%"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "cooldown",
+          "type": "set",
+          "value": 90,
+          "unit": "seconds"
+        },
+        {
+          "stat": "cooldown_reduce_on_crit",
+          "type": "add",
+          "value": 1,
+          "unit": "seconds_per_crit"
+        },
+        {
+          "stat": "cooldown_min_limit",
+          "type": "set",
+          "value": 60,
+          "unit": "seconds"
+        }
+      ],
+      "mechanics": {
+        "description": "冷却机制强化",
+        "base_cooldown": "缩短至90秒",
+        "crit_effect": "队长暴击时额外减少1秒冷却时间",
+        "limit_rule": "最低冷却时间不能低于60秒"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "team_damage_bonus",
+          "type": "set",
+          "value": 0.5
+        },
+        {
+          "stat": "heal_over_time_total",
+          "type": "add",
+          "value": 0.3,
+          "unit": "max_hp_ratio"
+        }
+      ],
+      "mechanics": {
+        "description": "团队增伤与持续治疗强化",
+        "buff": "全体增伤提升至50%",
+        "healing": "累计恢复总计30%生命值"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "emergency_heal_lowest_hp",
+          "type": "add",
+          "value": 0.2,
+          "unit": "max_hp_ratio"
+        },
+        {
+          "stat": "permanent_final_damage_bonus",
+          "type": "add_stack",
+          "value": 0.025,
+          "max_stack": 4
+        }
+      ],
+      "mechanics": {
+        "description": "终极超频效果",
+        "instant_heal": "触发时立即恢复最低生命值梦灵20%最大生命值",
+        "permanent_buff": "每次触发永久提升全体梦灵2.5%最终增伤（最多叠加4次）"
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "id": "如意",
+  "type": "skill",
+  "item_type": "weapon",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "blessing_refresh_count",
+          "type": "add",
+          "value": 1
+        }
+      ],
+      "mechanics": {
+        "description": "开局时获得祝福刷新次数",
+        "effect": "+1祝福刷新次数"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "extra_refresh_chance_on_level_up",
+          "type": "set",
+          "value": 0.1
+        },
+        {
+          "stat": "extra_refresh_trigger_cap",
+          "type": "set",
+          "value": 2
+        }
+      ],
+      "mechanics": {
+        "description": "战斗内升级时概率获得额外刷新次数",
+        "effect": "10%概率额外获得1次祝福刷新次数",
+        "limit": "最多触发2次"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "start_refresh_upgrade",
+          "type": "set",
+          "value": 2
+        },
+        {
+          "stat": "start_refresh_upgrade_chance",
+          "type": "set",
+          "value": 0.2
+        }
+      ],
+      "mechanics": {
+        "description": "开局刷新强化",
+        "effect": "20%概率使祝福刷新次数提升至+2"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "extra_refresh_chance_on_level_up",
+          "type": "set",
+          "value": 0.15
+        }
+      ],
+      "mechanics": {
+        "description": "升级触发刷新概率提升",
+        "effect": "战斗内升级获得祝福刷新次数概率提升至15%"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "start_refresh_upgrade",
+          "type": "set",
+          "value": 3,
+          "chance": 0.5
+        }
+      ],
+      "mechanics": {
+        "description": "开局强化上限提升",
+        "effect": "50%概率使祝福刷新次数提升至+3"
+      }
+    }
+  ]
+}

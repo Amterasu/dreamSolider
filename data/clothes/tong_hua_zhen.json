@@ -1,0 +1,102 @@
+{
+  "id": "童话镇",
+  "type": "skill",
+  "item_type": "clothes",
+  "levels": [
+    {
+      "level": 1,
+      "effects": [
+        {
+          "stat": "cycle_trigger_interval",
+          "type": "set",
+          "value": 180,
+          "unit": "seconds"
+        },
+        {
+          "stat": "shield_hits",
+          "type": "set",
+          "value": 10
+        },
+        {
+          "stat": "proc_chance_spring_hammer_on_hit",
+          "type": "set",
+          "value": 0.2
+        }
+      ],
+      "mechanics": {
+        "description": "每隔180秒召唤童话世界",
+        "effect": "在前方生成可抵挡10次伤害的彩虹护盾",
+        "on_hit_effect": "彩虹护盾受击时有20%概率释放一次弹簧锤"
+      }
+    },
+    {
+      "level": 2,
+      "effects": [
+        {
+          "stat": "shield_break_trigger",
+          "type": "event",
+          "value": "release_spring_hammer"
+        }
+      ],
+      "mechanics": {
+        "description": "彩虹盾破碎后触发效果",
+        "effect": "护盾破碎后会释放1次弹簧锤"
+      }
+    },
+    {
+      "level": 3,
+      "effects": [
+        {
+          "stat": "shield_auto_repair",
+          "type": "set",
+          "value": true
+        },
+        {
+          "stat": "per_battle_trigger_limit",
+          "type": "set",
+          "value": 1
+        }
+      ],
+      "mechanics": {
+        "description": "护盾恢复机制",
+        "effect": "护盾破碎后可在短时间内自动修复",
+        "limit": "每场战斗最多触发1次"
+      }
+    },
+    {
+      "level": 4,
+      "effects": [
+        {
+          "stat": "cooldown",
+          "type": "set",
+          "value": 140,
+          "unit": "seconds"
+        }
+      ],
+      "mechanics": {
+        "description": "冷却优化",
+        "effect": "冷却时间降低至140秒"
+      }
+    },
+    {
+      "level": 5,
+      "effects": [
+        {
+          "stat": "proc_chance_cooldown_reduction",
+          "type": "set",
+          "value": 0.2
+        },
+        {
+          "stat": "cooldown_reduction",
+          "type": "set",
+          "value": 10,
+          "unit": "seconds"
+        }
+      ],
+      "mechanics": {
+        "description": "彩虹盾强化机制",
+        "effect": "梦灵受击时有20%概率使彩虹盾冷却时间减少10秒"
+      }
+    }
+  ]
+}
