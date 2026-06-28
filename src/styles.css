@@ -289,6 +289,37 @@ body {
   width: 82px;
 }
 
+.record-note-input {
+  min-width: 150px;
+}
+
+.record-actions {
+  flex-wrap: nowrap;
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th.normal-highlight,
+.ant-table-wrapper .ant-table-tbody > tr > td.normal-highlight {
+  background: #fff3e8;
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th.normal-theory-cell,
+.ant-table-wrapper .ant-table-thead > tr > th.normal-actual-cell,
+.ant-table-wrapper .ant-table-thead > tr > th.normal-ratio-cell {
+  color: #8a3a10;
+  font-weight: 800;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td.normal-theory-cell,
+.ant-table-wrapper .ant-table-tbody > tr > td.normal-actual-cell {
+  color: #9a3300;
+  font-weight: 800;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td.normal-ratio-cell {
+  color: #0a6d36;
+  font-weight: 800;
+}
+
 .ant-card .ant-card-head {
   min-height: 40px;
   padding: 0 12px;
@@ -327,9 +358,13 @@ body {
 .ant-table-wrapper .ant-table-thead > tr > th,
 .ant-table-wrapper .ant-table-tbody > tr > td {
   padding: 7px 8px;
+  white-space: nowrap;
 }
 
-.ant-table-wrapper .ant-table-thead > tr > th {
+.ant-table-wrapper .ant-table-thead > tr > th,
+.ant-table-wrapper .ant-table-tbody > tr > td,
+.ant-table-wrapper .ant-table-cell,
+.ant-table-wrapper .ant-table-cell * {
   white-space: nowrap;
 }
 

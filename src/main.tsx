@@ -28,7 +28,7 @@ import './styles.css';
 
 const { Text, Title } = Typography;
 
-type SkillValue = '7' | '10' | '17.5' | '25' | '140' | 'custom';
+type SkillValue = '1.65' | '7' | '10' | '17.5' | '25' | '140' | 'custom';
 type SourceBucket = 'outside' | 'inside' | 'final' | 'vulnerability' | 'overclock' | 'crit' | 'leader' | 'info';
 type SourceInputKind = 'count' | 'stacks' | 'stars';
 
@@ -37,6 +37,7 @@ interface SkillOption {
   value: SkillValue;
   name: string;
   coeff: number;
+  frequency?: string;
 }
 
 interface UnitOption {
@@ -86,7 +87,9 @@ interface FormState {
   allOutput: number | null;
   inside: number | null;
   finalBonus: number | null;
+  professionBonus: boolean;
   critDamage: number | null;
+  errorNodes: number | null;
   normalActual: number | null;
   normalActualUnit: number;
   critActual: number | null;
@@ -127,13 +130,18 @@ interface DamageRecord {
   allOutputPercent: number;
   baseInsidePercent: number;
   baseFinalBonusPercent: number;
+  professionBonus: boolean;
+  professionBonusPercent: number;
   outsidePercent: number;
   insidePercent: number;
   finalBonusPercent: number;
   vulnerabilityPercent: number;
   overclockPercent: number;
   critDamagePercent: number;
+  errorNodeCount: number;
+  errorNodeCritDamagePercent: number;
   critDamageBonusPercent: number;
+  skillFrequency?: string;
   normalActualRaw: number;
   normalActualUnit: number;
   normalActual: number;
@@ -156,6 +164,7 @@ interface DamageRecord {
 
 const skillOptions: SkillOption[] = [
   { label: '普攻（7）', value: '7', name: '普攻', coeff: 7 },
+  { label: '骇客错误节点（1.65 / 1秒）', value: '1.65', name: '骇客错误节点', coeff: 1.65, frequency: '1秒触发一次' },
   { label: '网络延迟（10）', value: '10', name: '网络延迟', coeff: 10 },
   { label: '带宽爆破（17.5）', value: '17.5', name: '带宽爆破', coeff: 17.5 },
   { label: '分布打击（25）', value: '25', name: '分布打击', coeff: 25 },
@@ -374,11 +383,12 @@ const sourceCatalog: DamageSource[] = [
     id: 'weapon_yu_zhou_zhi_xin_wave',
     itemType: '武器',
     itemName: '宇宙之心',
-    title: '宇宙波',
-    bucket: 'leader',
-    summary: '队长伤害：30倍攻击力；控制可触发衣服宇宙之心易伤',
+    title: '3星宇宙波触发',
+    bucket: 'outside',
+    summary: '3星效果：宇宙波触发时梦灵伤害 +15%；宇宙波本体仍是队长伤害',
     getContributions: () => [
-      { bucket: 'leader', label: '武器宇宙之心：宇宙波', text: '队长伤害，易伤口径按衣服宇宙之心处理', leaderOnly: true }
+      { bucket: 'outside', label: '武器宇宙之心：3星宇宙波触发伤害', value: 15 },
+      { bucket: 'leader', label: '武器宇宙之心：宇宙波', text: '宇宙波本体是队长伤害；控制可触发衣服宇宙之心易伤', leaderOnly: true }
     ]
   },
   {
@@ -423,7 +433,9 @@ const defaultForm: FormState = {
   allOutput: 0,
   inside: 0,
   finalBonus: 0,
+  professionBonus: false,
   critDamage: 200,
+  errorNodes: 0,
   normalActual: 0,
   normalActualUnit: 1,
   critActual: 0,
@@ -472,10 +484,10 @@ function formatDamage(value: unknown): string {
   let unit = units.find((item) => abs >= item.limit) ?? units[units.length - 1];
   let compact = abs / unit.value;
 
-  if (compact >= 10000 && unit.label === 'k') {
+  if (compact >= 99999.5 && unit.label === 'k') {
     unit = units[1];
     compact = abs / unit.value;
-  } else if (compact >= 10000 && unit.label === 'm') {
+  } else if (compact >= 99999.5 && unit.label === 'm') {
     unit = units[0];
     compact = abs / unit.value;
   }
@@ -502,6 +514,114 @@ function formatPercent(value: unknown, digits = 2): string {
 
 function formatRawPercent(value: unknown, digits = 2): string {
   return `${formatNumber(toNumber(value), digits)}%`;
+}
+
+function formatCopyNumber(value: unknown, fallback = '-'): string {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Object.is(numeric, -0) ? '0' : numeric.toString();
+}
+
+function formatCopyPercent(value: unknown): string {
+  const text = formatCopyNumber(value);
+  return text === '-' ? text : `${text}%`;
+}
+
+function formatCopyRatioPercent(value: unknown): string {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return '-';
+  return `${formatCopyNumber(numeric * 100)}%`;
+}
+
+function formatCalculatorNumber(value: unknown): string {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return '0';
+  return formatCopyNumber(numeric, '0');
+}
+
+function calculatorMultiplier(percent: number): string {
+  return `(1+${formatCalculatorNumber(percent)}/100)`;
+}
+
+function buildNormalCalculatorFormula(record: DamageRecord): string {
+  const factors = [
+    formatCalculatorNumber(record.attack),
+    formatCalculatorNumber(record.coeff),
+    calculatorMultiplier(record.outsidePercent),
+    calculatorMultiplier(record.insidePercent),
+    calculatorMultiplier(record.finalBonusPercent),
+    calculatorMultiplier(record.vulnerabilityPercent ?? 0),
+    calculatorMultiplier(record.overclockPercent ?? 0)
+  ];
+  return factors.join('*');
+}
+
+function buildCritCalculatorFormula(record: DamageRecord): string {
+  const critBase = `(${buildNormalCalculatorFormula(record)})*((${formatCalculatorNumber(record.critDamagePercent)}+${formatCalculatorNumber(
+    record.critDamageBonusPercent ?? 0
+  )})/100)`;
+  const errorNodeBonus = record.errorNodeCritDamagePercent ?? 0;
+  return errorNodeBonus > 0 ? `(${critBase})*${calculatorMultiplier(errorNodeBonus)}` : critBase;
+}
+
+function getRecordSourceLines(record: DamageRecord): string[] {
+  const lines: string[] = [];
+  if ((record.professionBonusPercent ?? 0) > 0) {
+    lines.push(`基础输入 / 4梦灵光环: 最终 +${formatCopyPercent(record.professionBonusPercent)}`);
+  }
+  if ((record.errorNodeCount ?? 0) > 0) {
+    lines.push(`基础输入 / 错误节点: ${formatCopyNumber(record.errorNodeCount)} 个，最终暴击伤害 +${formatCopyPercent(record.errorNodeCritDamagePercent ?? 0)}`);
+  }
+  for (const sourceId of record.selectedSources ?? []) {
+    const source = sourceCatalog.find((item) => item.id === sourceId);
+    if (!source) continue;
+    const count = record.sourceCounts?.[sourceId] ?? source.input?.defaultValue ?? 1;
+    const option = record.sourceCounts?.[sourceOptionKey(sourceId)] ?? source.optionInput?.defaultValue;
+    for (const contribution of source.getContributions(count, option)) {
+      if (contribution.text) {
+        lines.push(`${source.itemName} / ${source.title}: ${contribution.text}`);
+      } else {
+        lines.push(`${source.itemName} / ${source.title}: ${bucketLabel(contribution.bucket)} +${formatCopyPercent(contribution.value ?? 0)}`);
+      }
+    }
+  }
+  return lines;
+}
+
+function buildRecordCopyText(record: DamageRecord): string {
+  const sourceLines = getRecordSourceLines(record);
+  return [
+    `【${record.note || '未命名记录'}】`,
+    '',
+    '基础参数',
+    `- 技能: ${record.skill}`,
+    record.skillFrequency ? `- 技能频率: ${record.skillFrequency}` : null,
+    `- 攻击力: ${formatCopyNumber(record.attack)}`,
+    `- 系数: ${formatCopyNumber(record.coeff)}`,
+    '',
+    '生效乘区',
+    `- 局外: ${formatCopyPercent(record.outsidePercent)}（面板 ${formatCopyPercent(record.baseOutsidePercent)} + 全员出力 ${formatCopyPercent(record.allOutputPercent)} + 装备/词条 ${formatCopyPercent(record.outsidePercent - record.baseOutsidePercent - record.allOutputPercent)}）`,
+    `- 局内: ${formatCopyPercent(record.insidePercent)}（面板 ${formatCopyPercent(record.baseInsidePercent)} + 装备/词条 ${formatCopyPercent(record.insidePercent - record.baseInsidePercent)}）`,
+    `- 最终: ${formatCopyPercent(record.finalBonusPercent)}（面板 ${formatCopyPercent(record.baseFinalBonusPercent)} + 4梦灵光环 ${formatCopyPercent(record.professionBonusPercent ?? 0)} + 装备/词条 ${formatCopyPercent(record.finalBonusPercent - record.baseFinalBonusPercent - (record.professionBonusPercent ?? 0))}）`,
+    `- 易伤: ${formatCopyPercent(record.vulnerabilityPercent ?? 0)}`,
+    `- 超频: ${formatCopyPercent(record.overclockPercent ?? 0)}`,
+    `- 暴击伤害: ${formatCopyPercent(record.critDamagePercent)}`,
+    `- 装备爆伤: ${formatCopyPercent(record.critDamageBonusPercent ?? 0)}`,
+    `- 错误节点最终暴击: ${formatCopyPercent(record.errorNodeCritDamagePercent ?? 0)}（独立乘区）`,
+    '',
+    '伤害来源',
+    sourceLines.length > 0 ? sourceLines.map((line) => `- ${line}`).join('\n') : '- 无',
+    '',
+    '计算公式',
+    `- 非暴击: ${buildNormalCalculatorFormula(record)}`,
+    `- 暴击: ${buildCritCalculatorFormula(record)}`,
+    '',
+    '结果对比',
+    `- 非暴击理论: ${formatCopyNumber(record.theory)}`,
+    `- 非暴击实测: ${formatCopyNumber(record.normalActual ?? record.actual ?? 0)}，实测/理论 ${formatCopyRatioPercent(record.ratio)}`,
+    `- 暴击理论: ${formatCopyNumber(record.critTheory)}`,
+    `- 暴击实测: ${formatCopyNumber(record.critActual ?? 0)}，实测/理论 ${formatCopyRatioPercent(record.critRatio)}`
+  ].filter((line) => line !== null).join('\n');
 }
 
 function unitLabel(unit: unknown): string {
@@ -535,7 +655,9 @@ function normalizeSavedForm(saved: SavedFormState | null): FormState {
     finalBonus:
       saved.finalBonusPercent ??
       (saved.bonusMode === 'percent' ? saved.finalBonus ?? 0 : multiplierToPercent(saved.finalBonus ?? 1)),
+    professionBonus: saved.professionBonus ?? defaultForm.professionBonus,
     critDamage: saved.critDamage ?? defaultForm.critDamage,
+    errorNodes: saved.errorNodes ?? defaultForm.errorNodes,
     normalActual: saved.normalActual ?? saved.actualRaw ?? saved.actual ?? defaultForm.normalActual,
     normalActualUnit: saved.normalActualUnit ?? saved.actualUnit ?? defaultForm.normalActualUnit,
     critActual: saved.critActual ?? defaultForm.critActual,
@@ -600,12 +722,16 @@ function calculate(form: FormState): DamageRecord {
   const allOutputPercent = toNumber(form.allOutput);
   const baseInsidePercent = toNumber(form.inside);
   const baseFinalBonusPercent = toNumber(form.finalBonus);
+  const professionBonus = Boolean(form.professionBonus);
+  const professionBonusPercent = professionBonus ? 5 : 0;
   const outsidePercent = baseOutsidePercent + allOutputPercent + sourceSummary.outsidePercent;
   const insidePercent = baseInsidePercent + sourceSummary.insidePercent;
-  const finalBonusPercent = baseFinalBonusPercent + sourceSummary.finalBonusPercent;
+  const finalBonusPercent = baseFinalBonusPercent + sourceSummary.finalBonusPercent + professionBonusPercent;
   const vulnerabilityPercent = sourceSummary.vulnerabilityPercent;
   const overclockPercent = sourceSummary.overclockPercent;
   const critDamagePercent = toNumber(form.critDamage, 200);
+  const errorNodeCount = Math.max(0, Math.floor(toNumber(form.errorNodes)));
+  const errorNodeCritDamagePercent = errorNodeCount * 5;
   const critDamageBonusPercent = sourceSummary.critDamageBonusPercent;
   const normalActualRaw = toNumber(form.normalActual);
   const normalActualUnit = toNumber(form.normalActualUnit, 1);
@@ -621,7 +747,7 @@ function calculate(form: FormState): DamageRecord {
     percentToMultiplier(finalBonusPercent) *
     percentToMultiplier(vulnerabilityPercent) *
     percentToMultiplier(overclockPercent);
-  const critTheory = theory * ((critDamagePercent + critDamageBonusPercent) / 100);
+  const critTheory = theory * ((critDamagePercent + critDamageBonusPercent) / 100) * percentToMultiplier(errorNodeCritDamagePercent);
   const diff = normalActual - theory;
   const critDiff = critActual - critTheory;
   const ratio = theory === 0 ? Number.NaN : normalActual / theory;
@@ -631,18 +757,23 @@ function calculate(form: FormState): DamageRecord {
   return {
     id: Date.now(),
     skill: skillMeta?.name ?? '自定义',
+    skillFrequency: skillMeta?.frequency,
     attack,
     coeff,
     baseOutsidePercent,
     allOutputPercent,
     baseInsidePercent,
     baseFinalBonusPercent,
+    professionBonus,
+    professionBonusPercent,
     outsidePercent,
     insidePercent,
     finalBonusPercent,
     vulnerabilityPercent,
     overclockPercent,
     critDamagePercent,
+    errorNodeCount,
+    errorNodeCritDamagePercent,
     critDamageBonusPercent,
     normalActualRaw,
     normalActualUnit,
@@ -731,6 +862,24 @@ function App() {
     setRecords((current) => [{ ...result, id: Date.now() }, ...current]);
   }
 
+  function updateRecordNote(recordId: number, note: string) {
+    setRecords((current) => current.map((record) => (record.id === recordId ? { ...record, note } : record)));
+  }
+
+  async function copyRecordDetails(record: DamageRecord) {
+    const text = buildNormalCalculatorFormula(record);
+    console.log(text);
+    await navigator.clipboard.writeText(text);
+    messageApi.success('已复制可直接计算的非暴击公式');
+  }
+
+  async function copyRecordInfo(record: DamageRecord) {
+    const text = buildRecordCopyText(record);
+    console.log(text);
+    await navigator.clipboard.writeText(text);
+    messageApi.success('已复制公式信息');
+  }
+
   function resetForm() {
     setFormState(defaultForm);
   }
@@ -746,7 +895,9 @@ function App() {
       allOutput: record.allOutputPercent ?? 0,
       inside: record.baseInsidePercent ?? record.insidePercent ?? 0,
       finalBonus: record.baseFinalBonusPercent ?? record.finalBonusPercent ?? 0,
+      professionBonus: record.professionBonus ?? false,
       critDamage: record.critDamagePercent ?? 200,
+      errorNodes: record.errorNodeCount ?? 0,
       normalActual: record.normalActualRaw ?? record.actualRaw ?? record.actual ?? 0,
       normalActualUnit: record.normalActualUnit ?? record.actualUnit ?? 1,
       critActual: record.critActualRaw ?? 0,
@@ -766,21 +917,21 @@ function App() {
       '局外%',
       '局内%',
       '最终%',
+      '四职业最终%',
       '易伤%',
       '超频%',
       '暴击伤害%',
+      '错误节点',
+      '错误节点终暴%',
       '装备爆伤%',
-      '非暴击理论',
       '暴击理论',
-      '非暴击实测',
-      '非暴击实测输入',
-      '非暴击单位',
       '暴击实测',
-      '暴击实测输入',
-      '暴击单位',
-      '非暴击比',
       '暴击比',
-      '备注'
+      '备注',
+      '词条记录 / 计算公式',
+      '非暴击理论',
+      '非暴击实测',
+      '非暴击比'
     ];
     const rows = records.map((record) => [
       record.skill,
@@ -789,49 +940,100 @@ function App() {
       record.outsidePercent,
       record.insidePercent,
       record.finalBonusPercent,
+      record.professionBonusPercent ?? 0,
       record.vulnerabilityPercent ?? 0,
       record.overclockPercent ?? 0,
       record.critDamagePercent ?? 200,
+      record.errorNodeCount ?? 0,
+      record.errorNodeCritDamagePercent ?? 0,
       record.critDamageBonusPercent ?? 0,
-      formatDamage(record.theory),
       formatDamage(record.critTheory ?? record.theory),
-      formatDamage(record.normalActual ?? record.actual ?? 0),
-      record.normalActualRaw ?? record.actualRaw ?? record.actual ?? 0,
-      unitLabel(record.normalActualUnit ?? record.actualUnit ?? 1),
       formatDamage(record.critActual ?? 0),
-      record.critActualRaw ?? 0,
-      unitLabel(record.critActualUnit ?? 1),
-      formatPercent(record.ratio, 1),
       formatPercent(record.critRatio, 1),
-      record.note || ''
+      record.note || '',
+      buildRecordCopyText(record),
+      formatDamage(record.theory),
+      `${formatDamage(record.normalActual ?? record.actual ?? 0)} (${record.normalActualRaw ?? record.actualRaw ?? record.actual ?? 0}${unitLabel(record.normalActualUnit ?? record.actualUnit ?? 1)})`,
+      formatPercent(record.ratio, 1)
     ]);
-    await navigator.clipboard.writeText([header, ...rows].map((row) => row.join('\t')).join('\n'));
-    messageApi.success('已复制表格');
+    const tableText = [header, ...rows].map((row) => row.join('\t')).join('\n');
+    console.log(tableText);
+    await navigator.clipboard.writeText(tableText);
+    messageApi.success('已复制表格，并输出到控制台');
   }
 
   const columns: TableColumnsType<DamageRecord> = [
     { title: '#', width: 52, render: (_value, _record, index) => index + 1 },
     { title: '技能', dataIndex: 'skill', width: 108, fixed: 'left' },
-    { title: '攻击力', dataIndex: 'attack', align: 'right', render: (value) => formatNumber(value) },
-    { title: '系数', dataIndex: 'coeff', align: 'right', render: (value) => formatNumber(value) },
-    { title: '局外%', dataIndex: 'outsidePercent', align: 'right', render: (value) => formatRawPercent(value) },
-    { title: '局内%', dataIndex: 'insidePercent', align: 'right', render: (value) => formatRawPercent(value) },
-    { title: '最终%', dataIndex: 'finalBonusPercent', align: 'right', render: (value) => formatRawPercent(value) },
-    { title: '易伤%', dataIndex: 'vulnerabilityPercent', align: 'right', render: (value) => formatRawPercent(value ?? 0) },
-    { title: '超频%', dataIndex: 'overclockPercent', align: 'right', render: (value) => formatRawPercent(value ?? 0) },
-    { title: '非暴击', dataIndex: 'theory', align: 'right', render: formatDamage },
-    { title: '暴击', dataIndex: 'critTheory', align: 'right', render: formatDamage },
-    { title: '非暴击实测', dataIndex: 'normalActual', width: 112, align: 'right', render: (value, record) => formatDamage(value ?? record.actual ?? 0) },
-    { title: '暴击实测', dataIndex: 'critActual', width: 96, align: 'right', render: (value) => formatDamage(value ?? 0) },
-    { title: '非暴击比', dataIndex: 'ratio', align: 'right', render: (value) => formatPercent(value, 1) },
-    { title: '暴击比', dataIndex: 'critRatio', align: 'right', render: (value) => formatPercent(value, 1) },
-    { title: '备注', dataIndex: 'note', width: 150, render: (value) => value || '-' },
+    { title: '攻击力', dataIndex: 'attack', width: 96, align: 'right', render: (value) => formatNumber(value) },
+    { title: '系数', dataIndex: 'coeff', width: 72, align: 'right', render: (value) => formatNumber(value) },
+    { title: '局外%', dataIndex: 'outsidePercent', width: 82, align: 'right', render: (value) => formatRawPercent(value) },
+    { title: '局内%', dataIndex: 'insidePercent', width: 82, align: 'right', render: (value) => formatRawPercent(value) },
+    { title: '最终%', dataIndex: 'finalBonusPercent', width: 82, align: 'right', render: (value) => formatRawPercent(value) },
     {
-      title: '',
+      title: '四职业',
+      dataIndex: 'professionBonusPercent',
+      width: 76,
+      align: 'right',
+      render: (value) => (toNumber(value) > 0 ? formatRawPercent(value) : '-')
+    },
+    { title: '易伤%', dataIndex: 'vulnerabilityPercent', width: 82, align: 'right', render: (value) => formatRawPercent(value ?? 0) },
+    { title: '超频%', dataIndex: 'overclockPercent', width: 82, align: 'right', render: (value) => formatRawPercent(value ?? 0) },
+    { title: '暴击', dataIndex: 'critTheory', width: 104, align: 'right', render: formatDamage },
+    { title: '错误节点', dataIndex: 'errorNodeCount', width: 92, align: 'right', render: (value) => formatNumber(value ?? 0, 0) },
+    { title: '节点终暴', dataIndex: 'errorNodeCritDamagePercent', width: 96, align: 'right', render: (value) => formatRawPercent(value ?? 0) },
+    { title: '暴击实测', dataIndex: 'critActual', width: 108, align: 'right', render: (value) => formatDamage(value ?? 0) },
+    { title: '暴击比', dataIndex: 'critRatio', width: 86, align: 'right', render: (value) => formatPercent(value, 1) },
+    {
+      title: '备注',
+      dataIndex: 'note',
+      width: 180,
+      render: (value, record) => (
+        <Input
+          className="record-note-input"
+          value={value}
+          maxLength={80}
+          placeholder="备注"
+          onChange={(event) => updateRecordNote(record.id, event.target.value)}
+        />
+      )
+    },
+    {
+      title: '非暴击理论',
+      dataIndex: 'theory',
       width: 132,
+      align: 'right',
+      className: 'normal-highlight normal-theory-cell',
+      render: formatDamage
+    },
+    {
+      title: '非暴击实测',
+      dataIndex: 'normalActual',
+      width: 132,
+      align: 'right',
+      className: 'normal-highlight normal-actual-cell',
+      render: (value, record) => formatDamage(value ?? record.actual ?? 0)
+    },
+    {
+      title: '非暴击比',
+      dataIndex: 'ratio',
+      width: 112,
+      align: 'right',
+      className: 'normal-highlight normal-ratio-cell',
+      render: (value) => formatPercent(value, 1)
+    },
+    {
+      title: '操作',
+      width: 294,
       fixed: 'right',
       render: (_value, record) => (
-        <Space>
+        <Space size={6} className="record-actions">
+          <Button size="small" onClick={() => copyRecordDetails(record)}>
+            复制公式
+          </Button>
+          <Button size="small" onClick={() => copyRecordInfo(record)}>
+            复制详情
+          </Button>
           <Button size="small" onClick={() => restoreRecord(record)}>
             复原
           </Button>
@@ -855,7 +1057,7 @@ function App() {
         </header>
 
         <Card className="formula-card" size="small">
-          梦灵理论伤害 = 攻击力 × 技能系数 × 局外 × 局内 × 最终 × 易伤 × 超频；暴击 = 非暴击 ×（输入暴击伤害 + 装备额外爆伤）
+          梦灵理论伤害 = 攻击力 × 技能系数 × 局外 × 局内 × 最终 × 易伤 × 超频；暴击 = 非暴击 ×（输入暴击伤害 + 装备爆伤）× 错误节点最终暴击
         </Card>
 
         <Row gutter={[16, 16]} align="top" className="top-layout">
@@ -924,6 +1126,33 @@ function App() {
                   <Col span={12}>
                     <Form.Item label="暴击伤害（%）" name="critDamage">
                       <InputNumber min={0} step="any" className="full-width" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label={
+                        <Space size={4}>
+                          <span>错误节点数</span>
+                          <Tooltip title="骇客普攻生成的错误节点；每个存在的错误节点使最终暴击伤害 +5%。">
+                            <Tag color="orange" className="tip-tag">
+                              tips
+                            </Tag>
+                          </Tooltip>
+                        </Space>
+                      }
+                      name="errorNodes"
+                    >
+                      <InputNumber min={0} precision={0} className="full-width" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={10}>
+                  <Col span={12}>
+                    <Form.Item name="professionBonus" valuePropName="checked" label=" ">
+                      <Checkbox>
+                        <Tooltip title="上阵四种不同职业伤害+5%">4梦灵光环</Tooltip>
+                      </Checkbox>
                     </Form.Item>
                   </Col>
                 </Row>
@@ -1093,8 +1322,12 @@ function App() {
               <strong>{formatRawPercent(result.overclockPercent)}</strong>
             </div>
             <div>
-              <Text type="secondary">额外爆伤</Text>
+              <Text type="secondary">装备爆伤</Text>
               <strong>{formatRawPercent(result.critDamageBonusPercent)}</strong>
+            </div>
+            <div>
+              <Text type="secondary">节点终暴</Text>
+              <strong>{formatRawPercent(result.errorNodeCritDamagePercent)}</strong>
             </div>
           </div>
 
@@ -1143,7 +1376,7 @@ function App() {
             rowKey="id"
             columns={columns}
             dataSource={records}
-            scroll={{ x: 1480 }}
+            scroll={{ x: 2120 }}
             pagination={false}
             locale={{ emptyText: '暂无记录' }}
             size="middle"
